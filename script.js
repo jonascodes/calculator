@@ -21,6 +21,9 @@ UpdateDisplay(displayValue);
 
 // Operation functions
 function Operate(a, b, myOperation) {
+    if (myOperation == divide && b == 0) {
+        return "error";
+    } 
     if (myOperation == "") {return b;}
     return myOperation(a,b);
 }
@@ -41,42 +44,45 @@ function UpdateDisplay(value) {
 
     displayFontSize = "100px";
     let str = 0;
-    if (Math.abs(value) >= Math.pow(10,10)) {
-            
-        // transform to 10th-power-illustration
-        if (value > 0) {
-            str = getPowerIllustrationPositive(value);
-        } else {
-            str = "-" + getPowerIllustrationPositive(value * (-1));
-        }
-        displayFontSize = "60px"; 
-
-    } else if (value > 0 && value <= Math.pow(10,-6)) { 
-        // transform to 10th-power-illustration
-        str = getPowerIllustrationNegative(value);
-        displayFontSize = "60px";
+    if (value == "error") {
+        str = "error";
     } else {
-
-        str = addDelimiters(value.toString()); 
-    
-        if (str.length > 7) {
-            
-            if (str.length <= 13) {
-                // fits in display with smaller font
-                displayFontSize = "60px"; 
-
+        if (Math.abs(value) >= Math.pow(10,10)) {
+                
+            // transform to 10th-power-illustration
+            if (value > 0) {
+                str = getPowerIllustrationPositive(value);
             } else {
-                // does not fit due to decimals => can be rounded/cut
-                displayFontSize = "60px";
-                str = str.substr(0,12);
-                // do not allow the last character to be a dot
-                if (str.slice(-1) == ".") {
-                    str = str.substr(0,11);
-                } 
+                str = "-" + getPowerIllustrationPositive(value * (-1));
+            }
+            displayFontSize = "60px"; 
+
+        } else if (value > 0 && value <= Math.pow(10,-6)) { 
+            // transform to 10th-power-illustration
+            str = getPowerIllustrationNegative(value);
+            displayFontSize = "60px";
+        } else {
+
+            str = addDelimiters(value.toString()); 
+        
+            if (str.length > 7) {
+                
+                if (str.length <= 13) {
+                    // fits in display with smaller font
+                    displayFontSize = "60px"; 
+
+                } else {
+                    // does not fit due to decimals => can be rounded/cut
+                    displayFontSize = "60px";
+                    str = str.substr(0,12);
+                    // do not allow the last character to be a dot
+                    if (str.slice(-1) == ".") {
+                        str = str.substr(0,11);
+                    } 
+                }
             }
         }
     }
-
 
     // hack: if number has a decimal, remove zeros from right side
     if (str.search("\\.") >= 0)  {
