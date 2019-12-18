@@ -6,13 +6,18 @@ buttons.forEach((btn) => {
         ProcessClick(e.target.id);
     });
 });
-let displayValue = 0;
-UpdateDisplay(displayValue);
+
 
 let a = 0;
 let b = 0;
 let myOperator = "";
+let operatorActive = false;
 let equalsRepeat = false;
+let enterDecimal = false;
+let enterDecinalCount = 0;
+
+let displayValue = 0;
+UpdateDisplay(displayValue);
 
 // Operation functions
 function Operate(a, b, myOperation) {
@@ -72,6 +77,11 @@ function UpdateDisplay(value) {
         }
     }
 
+
+    // hack: if number has a decimal, remove zeros from right side
+    if (str.search("\\.") >= 0)  {
+        str = RemoveZeros(str);
+    }   
     document.querySelector('#display').style.fontSize = displayFontSize;
     document.querySelector('#display').textContent = str;
 
@@ -79,6 +89,10 @@ function UpdateDisplay(value) {
 
 function ProcessClick(btnID) {
     if (btnID == "btn-equals") {
+        enterDecimal = false;
+        operatorActive = false;
+        deactivateAllOperatorBtns();   
+        enterDecinalCount = 0;        
         EqualsClicked();
     }
     if (btnID == "display") {
@@ -88,23 +102,41 @@ function ProcessClick(btnID) {
     if (btnID.search("btn-nr")>=0) {
         NumberClicked(btnID.slice(-1));
         equalsRepeat = false;
+        operatorActive = false;
+        deactivateAllOperatorBtns();   
     }
 
     if (btnID.search("btn-op")>=0) {
-        OperatorClicked(btnID.slice(-2));
+        deactivateAllOperatorBtns();   
+        enterDecimal = false;
+        enterDecinalCount = 0;        
+        OperatorClicked(btnID.slice(-2), operatorActive);
+        document.querySelector("#"+btnID).classList.add("active");
         equalsRepeat = false;
+        operatorActive = true;
     }
 
     if (btnID == "btn-clear") {
+        enterDecimal = false;
+        enterDecinalCount = 0;
         Clear();
         equalsRepeat = false;
+        operatorActive = false;
+        deactivateAllOperatorBtns();   
     }
     if (btnID == "btn-sign") {
+        enterDecimal = false;
+        enterDecinalCount = 0;        
         reverseSign();
     }
     if (btnID == "btn-percent") {
         divideByHundered();
-    }    
+        operatorActive = false;
+        deactivateAllOperatorBtns();   
+    } 
+    if (btnID == "btn-decimal") {
+        DecimalClicked();
+    }     
 }
 
 function Clear() {
@@ -119,15 +151,20 @@ function CopyToClipBoard() {
 }
 
 function NumberClicked(n) {
-    if (equalsRepeat) {
-        displayValue = parseInt(n);
-        equalsRepeat = false;
-        myOperator = "";    
+    if (enterDecimal) {
+        displayValue = displayValue + n / Math.pow(10, enterDecinalCount + 1);
+        enterDecinalCount++;   
     } else {
-        if (displayValue == 0) {
+        if (equalsRepeat) {
             displayValue = parseInt(n);
+            equalsRepeat = false;
+            myOperator = "";    
         } else {
-            displayValue = displayValue * 10 + parseInt(n);
+            if (displayValue == 0) {
+                displayValue = parseInt(n);
+            } else {
+                displayValue = displayValue * 10 + parseInt(n);
+            }
         }
     }
     UpdateDisplay(displayValue);
@@ -139,8 +176,10 @@ function OperatorClicked(op) {
     if (op == "mu") {myOperator = multiply;}
     if (op == "di") {myOperator = divide;}
 
-    a = displayValue;
-    displayValue = 0;
+    if (!operatorActive) {
+       a = displayValue;
+        displayValue = 0;
+    }
 }
 
 function EqualsClicked() {
@@ -213,3 +252,28 @@ function divideByHundered() {
     equalsRepeat = true;
     a = displayValue;
 };
+
+function DecimalClicked() {
+    enterDecimal = true;
+    //document.querySelector('#btn-decimal').style.backgroundColor = "rgb(0,0,0)";
+    if (equalsRepeat) {
+        equalsRepeat = false;
+        myOperator = "";
+        displayValue = 0;    
+    }
+}
+
+function deactivateAllOperatorBtns() {
+    document.querySelector("#btn-op-pl").classList.remove("active");
+    document.querySelector("#btn-op-mi").classList.remove("active");
+    document.querySelector("#btn-op-di").classList.remove("active");
+    document.querySelector("#btn-op-mu").classList.remove("active");
+}
+
+  
+function RemoveZeros(str) {
+    while (str.slice(-1) == "0") {
+        str = str.substr(0,str.length-1);
+    }
+    return str;
+} 
