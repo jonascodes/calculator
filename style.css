@@ -1,5 +1,5 @@
 html, body {
-    font-family: sans-serif;
+    font-family: 'Helvetica', 'Arial', sans-serif;
 }
 
 #container {
@@ -9,7 +9,7 @@ html, body {
     text-align: center;
 }
 
-.grid-container {
+#grid-container {
     display: inline-grid;
     grid-template-columns: 90px 90px 90px 90px;
     grid-template-rows: 180px 90px 90px 90px 90px 90px;
@@ -17,11 +17,11 @@ html, body {
     padding: 20px;
     grid-gap: 20px;
 }
-.grid-container > div {
+#grid-container > div {
     padding: 0px;
-    font-size: 40px;
+    font-size: 35px;
     border-radius: 45px;
-    text-align: center;    
+    text-align: center;  
 }
 .grid-display {
     grid-column-start: 1;
@@ -30,7 +30,7 @@ html, body {
     display: flex;
     justify-content: flex-end;
     align-items: flex-end;
-    font-size: 70px !important;
+    font-weight: 100 !important;
 }
 
 .button {
