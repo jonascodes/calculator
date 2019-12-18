@@ -12,9 +12,11 @@ UpdateDisplay(displayValue);
 let a = 0;
 let b = 0;
 let myOperator = "";
+let equalsRepeat = false;
 
 // Operation functions
 function Operate(a, b, myOperation) {
+    if (myOperation == "") {return b;}
     return myOperation(a,b);
 }
 let add = function (a,b) {
@@ -34,12 +36,20 @@ function UpdateDisplay(value) {
 
     displayFontSize = "100px";
     let str = 0;
-    if (value >= Math.pow(10,10)) {
+    if (Math.abs(value) >= Math.pow(10,10)) {
             
         // transform to 10th-power-illustration
-        str = getPowerIllustration(value);
+        if (value > 0) {
+            str = getPowerIllustrationPositive(value);
+        } else {
+            str = "-" + getPowerIllustrationPositive(value * (-1));
+        }
         displayFontSize = "60px"; 
 
+    } else if (value > 0 && value <= Math.pow(10,-6)) { 
+        // transform to 10th-power-illustration
+        str = getPowerIllustrationNegative(value);
+        displayFontSize = "60px";
     } else {
 
         str = addDelimiters(value.toString()); 
@@ -68,25 +78,33 @@ function UpdateDisplay(value) {
 };
 
 function ProcessClick(btnID) {
-
+    if (btnID == "btn-equals") {
+        EqualsClicked();
+    }
     if (btnID == "display") {
         CopyToClipBoard();
     }
 
     if (btnID.search("btn-nr")>=0) {
         NumberClicked(btnID.slice(-1));
+        equalsRepeat = false;
     }
 
     if (btnID.search("btn-op")>=0) {
         OperatorClicked(btnID.slice(-2));
+        equalsRepeat = false;
     }
-    if (btnID == "btn-equals") {
-        EqualsClicked();
-    }
+
     if (btnID == "btn-clear") {
         Clear();
+        equalsRepeat = false;
     }
-    
+    if (btnID == "btn-sign") {
+        reverseSign();
+    }
+    if (btnID == "btn-percent") {
+        divideByHundered();
+    }    
 }
 
 function Clear() {
@@ -101,10 +119,16 @@ function CopyToClipBoard() {
 }
 
 function NumberClicked(n) {
-    if (displayValue == 0) {
+    if (equalsRepeat) {
         displayValue = parseInt(n);
+        equalsRepeat = false;
+        myOperator = "";    
     } else {
-        displayValue = displayValue * 10 + parseInt(n);
+        if (displayValue == 0) {
+            displayValue = parseInt(n);
+        } else {
+            displayValue = displayValue * 10 + parseInt(n);
+        }
     }
     UpdateDisplay(displayValue);
 }
@@ -121,12 +145,19 @@ function OperatorClicked(op) {
 
 function EqualsClicked() {
     b = displayValue;
-    displayValue = Operate(a,b,myOperator);
+    if (equalsRepeat) {
+        displayValue = Operate(a,last_b,myOperator);
+    } else {
+        displayValue = Operate(a,b,myOperator);
+        last_b = b;
+    }
     UpdateDisplay(displayValue);
+    equalsRepeat = true;
+    a = displayValue;
 }
 
 
-function getPowerIllustration(value) {
+function getPowerIllustrationPositive(value) {
     let power = 0;
     while (value >= 10) {
         value = value / 10;
@@ -137,17 +168,48 @@ function getPowerIllustration(value) {
     return str_number + "e" + str_power;  
 }
 
+function getPowerIllustrationNegative(value) {
+    // java uses e-x illustration as well
+    let str = value.toString();
+    let pos = str.search("e");
+    return str.substr(0,Math.min(pos,7)) + str.slice(-(str.length-pos));    
+}
+
 function addDelimiters(str) {
     let result = "";
-    if (str.search("\\.") >= 0) {
-        split = str.split(".");
-        return addDelimiters(split[0]) + "." + split[1];
+    if (str.substr(0,1) == "-") {
+        return "-" + addDelimiters(str.substr(1,str.length-1));
     } else {
-        while (str.length > 3) {
-            result = "," + str.slice(-3) + result;
-            str = str.substr(0,str.length - 3);
-        } 
-        result = str + result;
+        if (str.search("\\.") >= 0) {
+            split = str.split(".");
+            return addDelimiters(split[0]) + "." + split[1];
+        } else {
+            while (str.length > 3) {
+                result = "," + str.slice(-3) + result;
+                str = str.substr(0,str.length - 3);
+            } 
+            result = str + result;
+        }
+        return result;
     }
-    return result;
 }
+
+function reverseSign() {
+    displayValue = displayValue * (-1);
+    UpdateDisplay(displayValue);
+};
+
+function divideByHundered() {
+    // from OperatedClicked
+    myOperator = divide;
+    a = displayValue;
+    displayValue = 0;
+
+    // from EqualsClicked
+    b = 100;
+    displayValue = Operate(a,b,myOperator);
+    last_b = b;
+    UpdateDisplay(displayValue);
+    equalsRepeat = true;
+    a = displayValue;
+};
